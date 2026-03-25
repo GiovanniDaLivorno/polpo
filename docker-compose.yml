@@ -1,0 +1,41 @@
+services:
+
+  ollama:
+    image: giod/molly:latest
+    container_name: molly
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+
+  polpo:
+    build: ./polpo
+    container_name: polpo
+    depends_on:
+      - ollama
+      - mcp_logs
+      - mcp_metrics
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./polpo:/app
+    command: ["python", "polpo.py"]
+    restart: unless-stopped
+
+  mcp_logs:
+    build: ./mcp-logs
+    container_name: mcp_logs
+    ports:
+      - "6001:6001"
+    restart: unless-stopped
+
+  mcp_metrics:
+    build: ./mcp-metrics
+    container_name: mcp_metrics
+    ports:
+      - "6002:6002"
+    restart: unless-stopped
+
+volumes:
+  ollama_models:

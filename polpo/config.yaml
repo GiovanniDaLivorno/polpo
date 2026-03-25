@@ -1,0 +1,10 @@
+
+mcp_servers:
+  - name: logs_server
+    url: "ws://localhost:6001"
+  - name: metrics_server
+    url: "ws://localhost:6002"
+
+ollama:
+  model: "llama3"
+

@@ -1,0 +1,6 @@
+When you need external information, call a tool in this format:
+
+#tool:TOOL_NAME@SERVER_NAME
+{ "arg1": "", "arg2": "" }
+
+Only use this format.
