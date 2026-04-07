@@ -1,0 +1,47 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Pytest
+.pytest_cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+.coverage.*
+coverage.xml
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Docker
+docker-compose.override.yml
+.Dockerfile.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and runtime files
+*.log
+logs/
+
+# MCP and local runtime
+mcp-logs/*.pyc
+mcp-metrics/*.pyc
+polpo/*.pyc

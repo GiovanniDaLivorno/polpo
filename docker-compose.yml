@@ -28,6 +28,10 @@ services:
     container_name: mcp_logs
     ports:
       - "6001:6001"
+    volumes:
+      - /var/log:/host_var_log:ro
+      - /run/log/journal:/host_run_log_journal:ro
+      - /var/log/journal:/host_var_log_journal:ro
     restart: unless-stopped
 
   mcp_metrics:
