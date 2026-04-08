@@ -1,3 +1,13 @@
+# Note that the server does not distinguish between journal and syslog requests based on the incoming request parameters. 
+# Instead, it uses an automatic fallback mechanism in the collect_system_logs function:
+# First searches through syslog-style log files (configured via LOG_FILES environment variable, defaulting to syslog and messages files in LOG_ROOT)
+# Fallback: Only if no matching entries are found in the syslog files, it then queries the systemd journal using collect_journal_logs function
+
+# Result returned to the client will be:
+# - syslog results if found
+# - journal results if syslog yielded nothing
+# - a "no matching entries" message if both sources are empty
+
 import asyncio
 import collections
 import datetime
@@ -67,37 +77,6 @@ def tail_lines(path, max_lines=MAX_SCAN_LINES):
 
         return list(lines)[-max_lines:]
 
-def collect_journal_logs(query, minutes):
-    query_lower = query.lower().strip()
-    cutoff = datetime.datetime.now() - datetime.timedelta(minutes=max(minutes, 0))
-    since_arg = f"{minutes} minutes ago"
-
-    for journal_dir in JOURNAL_DIRS:
-        if not os.path.isdir(journal_dir):
-            continue
-
-        cmd = [
-            "journalctl",
-            "--directory",
-            journal_dir,
-            "--since",
-            since_arg,
-            "--no-pager",
-            "--output=short-iso",
-        ]
-        if query_lower:
-            cmd += ["--grep", query]
-
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode != 0:
-            continue
-
-        logs = [line for line in proc.stdout.splitlines() if line.strip()]
-        if logs:
-            return logs[:MAX_RESULT_LINES]
-
-    return []
-
 
 # Collects system logs matching the query and within the specified time range.
 def collect_system_logs(query, minutes):
@@ -135,6 +114,39 @@ def collect_system_logs(query, minutes):
     return [
         f"No matching system log entries found for query '{query}' in the last {minutes} minutes."
     ]
+
+# Collects logs from the systemd journal matching the query and within the specified time range.
+def collect_journal_logs(query, minutes):
+    query_lower = query.lower().strip()
+    cutoff = datetime.datetime.now() - datetime.timedelta(minutes=max(minutes, 0))
+    since_arg = f"{minutes} minutes ago"
+
+    for journal_dir in JOURNAL_DIRS:
+        if not os.path.isdir(journal_dir):
+            continue
+
+        cmd = [
+            "journalctl",
+            "--directory",
+            journal_dir,
+            "--since",
+            since_arg,
+            "--no-pager",
+            "--output=short-iso",
+        ]
+        if query_lower:
+            cmd += ["--grep", query]
+
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode != 0:
+            continue
+
+        logs = [line for line in proc.stdout.splitlines() if line.strip()]
+        if logs:
+            return logs[:MAX_RESULT_LINES]
+
+    return []
+
 
 # WebSocket handler that processes incoming JSON-RPC requests to fetch logs.
 async def handler(websocket):

@@ -1,4 +1,4 @@
-#  test-mcp-logs.py script tests MCP logs retrieval
+#  test-mcp-logs.py tests logs retrieval for both journal base and standard syslog-style log files. It:
 #   - connects to the MCP WebSocket server, 
 #   - sends a request to retrieve logs with the word "error" from last 60 minutes, 
 #   - and prints the response.
@@ -35,5 +35,8 @@ async def main():
 
         # Test journal fallback on Debian-style systems
         await send_request(websocket, 2, 'crash', 60)
+
+        # Test journal base functionality with systemd-specific query
+        await send_request(websocket, 3, 'systemd', 60)
 
 asyncio.run(main())
